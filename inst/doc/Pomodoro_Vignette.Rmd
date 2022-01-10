@@ -1,0 +1,81 @@
+---
+title: "Pomodoro_Vignette"
+author: "Seyma Kalay"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Pomodoro_Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(pomodoro)
+```
+
+This package was set for the Credit Access studies. But it can be used for the binary and multiple factor variables. 
+First thing let's see the str of the *sample_data* with `str(sample_data)`. Since the dataset is huge, let's take the first 500 rows and set the study on it.
+
+The following example run the `multinominal logistic model` in `yvar`. The function simplifies the 80/20 train test set using 10cv after scaled and center it.
+
+```{r MLR, echo=FALSE}
+sample_data <- sample_data[1:500,]
+yvar  <- c("Loan.Type")
+m2.xvar0 <- c("sex", "married", "age", "havejob", "educ", "rural", "region","income","political.afl")
+#m2.xvar1 <- c(m2.xvar0, "networth")   # with "networth"
+BchMk.MLM.1 <- RF_Model(sample_data, c(m2.xvar0,"networth"), yvar)
+#BchMk.MLR.1
+BchMk.MLM.1$finalModel
+BchMk.MLM.1$Roc$auc
+```
+
+
+### Estimate_Models
+
+Estimate_Models function considers `exog` and `xadd` variables and set multiple models based on the selected `exog` and `xadd`.
+On the one hand `exog` is subtract the selected vector from the dataset and run the model for all the dataset and for the splits of the `exog`.
+On the other hand `xadd` add the selected vectors and run the model.
+Where the `dnames` are the unique values in `exog` this is to save the model estimates by their name.
+
+```{r EstModel, echo=FALSE}
+library(dplyr)
+CCP <- sample_data %>% filter(sample_data$political.afl==1)
+NoCCP <- sample_data %>% filter(sample_data$political.afl==0)
+
+#yvar  <- c("Loan.Type")
+#m2.xvar0 <- c("sex", "married", "age", "havejob", "educ", "rural", "region","income","political.afl") #, "ethnicity" "class.of.HH",
+
+
+# CCP.MLR.1 <-  RF_Model(CCP, m2.xvar1, yvar)
+# NoCCP.MLR.1 <-  RF_Model(NoCCP, m2.xvar1, yvar)
+
+CCP.RF.1  <- Estimate_Models(sample_data, yvar = c("Loan.Type"), exog = "political.afl", xvec = m2.xvar0, xadd="networth", type="RF", dnames=c("0","1"))
+CCP.RF.1
+```
+
+### Combined_Performance
+
+Estimate_Models gives the results based on the splits of the `exog`. 
+Combined_Performance prints out the total performance of these splits.
+
+```{r ComPerf, echo=FALSE}
+library(dplyr)
+sample_data <- sample_data[c(1:750),]
+m2.xvar0 <- c("sex", "married", "age", "havejob", "educ", "rural", "region","income") #, "ethnicity" "class.of.HH",
+m2.xvar1 <- c(m2.xvar0, "networth")   # with "networth"
+CCP <- sample_data %>% filter(sample_data$political.afl==1)
+NoCCP <- sample_data %>% filter(sample_data$political.afl==0)
+CCP.RF <-  RF_Model(CCP, m2.xvar1, yvar)
+NoCCP.RF <-  RF_Model(NoCCP, m2.xvar1, yvar)
+Sub.CCP.RF <- list(Mdl.1 = CCP.RF,  Mdl.2= NoCCP.RF)
+CCP.NoCCP.RF <- Combined_Performance(Sub.CCP.RF)
+CCP.NoCCP.RF$Roc$auc
+```
+
