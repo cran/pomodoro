@@ -1,5 +1,13 @@
-
-#' Title
+#' Gradient Boosting Model
+#'
+#' @details Unlike bagging trees, boosting does not use bootstrap sampling,
+#' rather each tree is fit using information from previous trees.
+#' An event probability of stochastic gradient boosting model is given by
+#' \deqn{\hat{\pi_i} = \frac{1}{1 + exp[-f(x)]^\prime}}
+#'  where \eqn{f(x)} is in the range of \eqn{[-\infty,\infty]} and its initial estimate of the model is
+#'  \eqn{f^{(0)}_i=log(\frac{\pi_{i}}{1-\pi_{i}})},
+#'  where \eqn{\hat{\pi}} is the estimated sample proportion of a single class from the training set.
+#'
 #'
 #' @param Data The name of the Dataset.
 #' @param xvar X variables.
@@ -16,24 +24,20 @@
 #' \donttest{
 #' yvar <- c("Loan.Type")
 #' sample_data <- sample_data[c(1:120),]
-#' m2.xvar0 <- c("sex", "married", "age", "havejob", "educ", "rural", "region","income")
-#' BchMk.GBM <- GBM_Model(sample_data, c(m2.xvar0, "political.afl", "networth"), yvar)
+#' xvar <- c("sex", "married", "age", "havejob", "educ", "political.afl",
+#' "rural", "region", "fin.intermdiaries", "fin.knowldge", "income")
+#' BchMk.GBM <- GBM_Model(sample_data, c(xvar, "networth"), yvar )
 #' BchMk.GBM$finalModel
 #' BchMk.GBM$Roc$auc
 #' }
 
 
-
-
-
-
-
-GBM_Model <- function(Data, xvar, yvar){ # #' @export was deleted
-
+GBM_Model <- function(Data, xvar, yvar){
 
   if (yvar == "Loan.Type"){
     Data.sub <- Data[, c(xvar, yvar)]
     Data.sub[, yvar] <- factor(Data.sub[, yvar], levels = c( "No.Loan", "Formal",  "Informal", "L.Both"))
+
 
     #set.seed(87)
     train.set <- createDataPartition(Data.sub[, yvar], p = .80, list = 0)
@@ -54,6 +58,8 @@ GBM_Model <- function(Data, xvar, yvar){ # #' @export was deleted
 
   } else if(yvar == "multi.level"){
     Data.sub <- Data[, c(xvar, yvar)]
+    Data.sub[, yvar] <- factor(ifelse(Data.sub[, yvar] == "one", 1, 0))
+
 
     #set.seed(87)
     train.set <- createDataPartition(Data.sub[, yvar], p = .80, list = 0)
@@ -66,11 +72,13 @@ GBM_Model <- function(Data, xvar, yvar){ # #' @export was deleted
     Y.test  <- Data.sub.test[ ,yvar]
 
     # Fit the model
-    #myControl <- trainControl("cv", 10,  verboseIter = TRUE) #classProbs = TRUE, savePredictions=T)  #"cv" = cross-validation, 10-fold
+    #myControl <- trainControl("cv", 10,  verboseIter = TRUE, classProbs = TRUE, savePredictions=T) #classProbs = TRUE, savePredictions=T)  #"cv" = cross-validation, 10-fold
 
     # Fit the model
 
-    Model.GBM <- train(x = X.train, y = Y.train,  method = "gbm", preProcess = c("center", "scale"))
+    Model.GBM <- train(x = X.train, y = Y.train,  method = "gbm",
+                       #trControl =  myControl,
+                       preProcess = c("center", "scale"))
 
     GBM.fit <- gbm.fit(X.train, Y.train, distribution = "bernoulli") #distribution = "gaussian")
 
@@ -98,4 +106,3 @@ GBM_Model <- function(Data, xvar, yvar){ # #' @export was deleted
 
   return(Model.GBM)
 }
-

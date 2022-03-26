@@ -2,7 +2,7 @@
 % Please edit documentation in R/Estimate_Models.R
 \name{Estimate_Models}
 \alias{Estimate_Models}
-\title{Title}
+\title{Results of the Each Data and Data Splits}
 \usage{
 Estimate_Models(DataSet, yvar, exog = NULL, xvec, xadd, type, dnames)
 }
@@ -25,7 +25,7 @@ Estimate_Models(DataSet, yvar, exog = NULL, xvec, xadd, type, dnames)
 The output from  \code{\link{Estimate_Models}}.
 }
 \description{
-Title
+Results of the Each Data and Data Splits
 }
 \examples{
 \donttest{

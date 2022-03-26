@@ -1,5 +1,12 @@
-
-#' Title
+#' Random Forest
+#'
+#' @details
+#' Rather than considering the random sample of \eqn{m}{m} predictors
+#' from the total of \eqn{p}{p} predictors in each split,
+#' random forest does not consider a majority of the \eqn{p}{p} predictors, and considers in each split a
+#' fresh sample of  \eqn{m_{try}}{m_{try}} which we usually set  to \eqn{m_{try} \approx \sqrt{p}}
+#' Random forests which de-correlate the trees by considering  \eqn{m_{try} \approx \sqrt{p}}
+#' show an improvement over bagged trees  \eqn{m = p}{m = p}.
 #'
 #' @param Data The name of the Dataset.
 #' @param xvar X variables.
@@ -7,29 +14,33 @@
 #' @return The output from  \code{\link{RF_Model}}.
 #' @export
 #' @importFrom  pROC multiclass.roc
-#' @importFrom stats binomial pnorm predict
+#' @importFrom  stats binomial pnorm predict
+#' @importFrom  randomForest randomForest
+#' @importFrom  caret createDataPartition
+#' @importFrom  caret trainControl
+#' @importFrom  caret train
 #' @examples
 #' \donttest{
+#' sample_data <- sample_data[c(1:750),]
 #' yvar <- c("Loan.Type")
-#' sample_data <- sample_data[c(1:250),]
-#' m2.xvar0 <- c("sex", "married", "age", "havejob", "educ", "rural", "region","income")
-#' BchMk.MLR.1 <- RF_Model(sample_data, c(m2.xvar0, "political.afl", "networth"), yvar)
-#' BchMk.MLR.1$finalModel
-#' BchMk.MLR.1$Roc$auc
+#' xvar <- c("sex", "married", "age", "havejob", "educ", "political.afl",
+#' "rural", "region", "fin.intermdiaries", "fin.knowldge", "income")
+#' BchMk.RF <- RF_Model(sample_data, c(xvar, "networth"), yvar )
+#' BchMk.RF
 #'  }
-
 
 
 
 
 RF_Model <- function(Data, xvar, yvar){ # #' @export was deleted
 
-  #I ADDED THIS IF BUT IT GIVES ERROR
+
   if (yvar == "Loan.Type"){
     Data.sub <- Data[, c(xvar, yvar)]
     Data.sub[, yvar] <- factor(Data.sub[, yvar], levels = c( "No.Loan", "Formal",  "Informal", "L.Both"))
   } else if(yvar == "multi.level"){
     Data.sub <- Data[, c(xvar, yvar)]
+    Data.sub[, yvar] <- factor(Data.sub[, yvar], levels = c( "zero", "one"))
   }
 
   #set.seed(87)
@@ -48,7 +59,7 @@ RF_Model <- function(Data, xvar, yvar){ # #' @export was deleted
   Model.RF <- train(x = X.train, y = Y.train,  method = "rf",  trControl = myControl,
                     preProcess = c("center", "scale"))
 
-  RF.fit <- randomForest::randomForest(Data.sub.train[,yvar] ~ ., data = Data.sub.train) #, family=binomial(link="logit"))
+  RF.fit <- randomForest(Data.sub.train[,yvar] ~ ., data = Data.sub.train) #, family=binomial(link="logit"))
 
   Model.RF$finalModel$call <- RF.fit$call
 

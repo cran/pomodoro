@@ -2,7 +2,7 @@
 % Please edit documentation in R/BAG_Model.R
 \name{BAG_Model}
 \alias{BAG_Model}
-\title{Title}
+\title{Bagging Model}
 \usage{
 BAG_Model(Data, xvar, yvar)
 }
@@ -17,15 +17,27 @@ BAG_Model(Data, xvar, yvar)
 The output from  \code{\link{BAG_Model}}.
 }
 \description{
-Title
+Bagging Model
+}
+\details{
+Decision trees suffer from high
+variance (If we split the training data-set randomly into two parts and set a decision tree to both parts, the results might be quite different).
+Bagging is an ensemble procedure which reduces the variance and increases the prediction accuracy of a statistical learning method
+by considering many training sets
+(\eqn{\hat{f}^{1}(x),\hat{f}^{2}(x),\ldots,\hat{f}^{B}(x)})
+from the population. Since we can not have multiple training-sets, from a single training data-set, we can generate
+\eqn{B}{B} different bootstrapped training data-sets
+(\eqn{\hat{f}^{*1}(x), \hat{f}^{*2}(x), \ldots,\hat{f}^{*B}(x)})
+by each \eqn{B}{B} trees and take a majority vote. Therefore, bagging for classification problem  defined as
+ \deqn{\hat{f}(x)=arg\max_{k}\hat{f}^{*b}(x)}
 }
 \examples{
 \donttest{
 yvar <- c("Loan.Type")
 sample_data <- sample_data[c(1:750),]
-m2.xvar0 <- c("sex", "married", "age", "havejob", "educ", "rural", "region","income")
-BchMk.BAG <- BAG_Model(sample_data, c(m2.xvar0, "political.afl", "networth"), yvar)
-BchMk.BAG$finalModel
+xvar <- c("sex", "married", "age", "havejob", "educ", "political.afl",
+"rural", "region", "fin.intermdiaries", "fin.knowldge", "income")
+BchMk.BAG <- BAG_Model(sample_data, c(xvar, "networth"), yvar )
 BchMk.BAG$Roc$auc
 }
 }
